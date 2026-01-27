@@ -1,0 +1,14 @@
+# Log files
+firebase-debug.log
+*.log
+
+# IDE files
+.idea/
+.vscode/
+
+# Build artifacts
+target/
+*.jar
+
+# Dependency directories
+node_modules/

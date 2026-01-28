@@ -8,9 +8,6 @@ RUN apt-get update && apt-get install -y maven wget
 COPY pom.xml .
 COPY src ./src
 # Clear specific dependency cache before resolving
-RUN rm -rf /root/.m2/repository/com/google/cloud/google-cloud-firestore/1.36.0/
-# Diagnostic: Try to download the POM directly
-RUN wget https://repo.maven.apache.org/maven2/com/google/cloud/google-cloud-firestore/1.36.0/google-cloud-firestore-1.36.0.pom
 RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve --update-snapshots
 RUN --mount=type=cache,target=/root/.m2 mvn package -Dmaven.test.skip=true --update-snapshots
 

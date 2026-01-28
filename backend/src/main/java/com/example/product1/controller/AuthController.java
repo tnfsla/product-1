@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.password.PasswordEncoder; // Import this
 
 import java.util.concurrent.ExecutionException;
 
@@ -17,6 +18,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired // Autowire PasswordEncoder for temporary use
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
@@ -30,6 +34,14 @@ public class AuthController {
         } catch (ExecutionException | InterruptedException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error during login: " + e.getMessage());
         }
+    }
+
+    // Temporary endpoint to generate BCrypt hash for "1234" - REMOVE AFTER USE
+    @GetMapping("/generate-hash")
+    public ResponseEntity<String> generateHash() {
+        String rawPassword = "1234";
+        String hashedPassword = passwordEncoder.encode(rawPassword);
+        return ResponseEntity.ok(hashedPassword);
     }
 
     // DTO for login request

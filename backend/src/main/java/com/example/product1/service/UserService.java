@@ -44,4 +44,16 @@ public class UserService {
     public boolean verifyPassword(String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }
+
+    // Temporary main method to test BCrypt hash compatibility - REMOVE AFTER USE
+    public static void main(String[] args) {
+        BCryptPasswordEncoder tempPasswordEncoder = new BCryptPasswordEncoder();
+        String rawPassword = "1234";
+        String providedHash = "$2a$10$9421OM.DtpucZSse//FWaOubd2Ps66JHAWRKeR/Rj4100FLuacdQG"; // Hash from online generator
+        boolean matches = tempPasswordEncoder.matches(rawPassword, providedHash);
+        System.out.println("------------------------------------------");
+        System.out.println("Does '1234' match the provided hash? " + matches);
+        System.out.println("------------------------------------------");
+        System.exit(0); // Exit after testing
+    }
 }

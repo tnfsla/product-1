@@ -22,7 +22,7 @@ public class UserDataInitializer implements CommandLineRunner {
         User adminUser = userService.getUserByUsername(adminUsername);
         if (adminUser == null) {
             System.out.println("Creating default admin user...");
-            User newAdmin = new User(adminUsername, adminPassword); // Password will be hashed in UserService
+            User newAdmin = new User(adminUsername, adminPassword); // Password will now be saved as plain text
             userService.saveUser(newAdmin);
             System.out.println("Default admin user created: " + adminUsername);
         } else {

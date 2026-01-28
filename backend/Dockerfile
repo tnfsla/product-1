@@ -7,6 +7,7 @@ COPY pom.xml .
 COPY src ./src
 COPY mvnw ./mvnw
 RUN chmod +x ./mvnw
+RUN sed -i 's/\r$//' ./mvnw
 RUN --mount=type=cache,target=/root/.m2 ./mvnw package -Dmaven.test.skip=true
 
 # Stage 2: Create the final image

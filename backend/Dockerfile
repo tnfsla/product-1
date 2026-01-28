@@ -3,12 +3,11 @@
 # Stage 1: Build the application
 FROM eclipse-temurin:17-jdk-jammy as builder
 WORKDIR /app
+# Install Maven
+RUN apt-get update && apt-get install -y maven
 COPY pom.xml .
 COPY src ./src
-COPY mvnw ./mvnw
-RUN chmod +x ./mvnw
-RUN sed -i 's/\r$//' ./mvnw
-RUN --mount=type=cache,target=/root/.m2 ./mvnw package -Dmaven.test.skip=true
+RUN --mount=type=cache,target=/root/.m2 mvn package -Dmaven.test.skip=true
 
 # Stage 2: Create the final image
 FROM eclipse-temurin:17-jre-jammy

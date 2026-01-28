@@ -7,7 +7,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y maven
 COPY pom.xml .
 COPY src ./src
-RUN --mount=type=cache,target=/root/.m2 mvn package -Dmaven.test.skip=true
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve
+RUN --mount=type=cache,target=/root/.m2 mvn package -Dmaven.test.skip=true --update-snapshots
 
 # Stage 2: Create the final image
 FROM eclipse-temurin:17-jre-jammy

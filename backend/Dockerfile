@@ -5,7 +5,7 @@ FROM eclipse-temurin:17-jdk-jammy as builder
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
-COPY mvnw ./mvnw # Explicitly copy mvnw to /app/mvnw
+COPY mvnw ./mvnw
 RUN --mount=type=cache,target=/root/.m2 ./mvnw package -Dmaven.test.skip=true
 
 # Stage 2: Create the final image

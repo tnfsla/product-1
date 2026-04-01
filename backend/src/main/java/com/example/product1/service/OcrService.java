@@ -41,7 +41,7 @@ public class OcrService {
         String ocrText;
         boolean usedOcr = false;
 
-        if (pdfText != null && pdfText.length() >= 10) {
+        if (pdfText != null && pdfText.length() >= 10 && !isWatermarkText(pdfText)) {
             ocrText = pdfText;
         } else {
             // 2) FAST OCR — PSM 11, DPI 150
@@ -849,6 +849,18 @@ public class OcrService {
             sb.append(Pattern.quote(String.valueOf(ch))).append("\\s*");
         }
         return sb.toString();
+    }
+
+    // ─── 워터마크 감지 ────────────────────────────────────────────
+
+    /**
+     * 열람 전용 PDF의 보호 워터마크 텍스트인지 확인.
+     * 해당 텍스트가 있으면 텍스트 레이어를 무시하고 OCR로 폴백.
+     */
+    private boolean isWatermarkText(String text) {
+        if (text == null) return false;
+        String t = text.replaceAll("\\s+", "");
+        return t.contains("열람") && (t.contains("유출") || t.contains("수정할수없습니다") || t.contains("열람파일생성"));
     }
 
     // ─── Confidence 점수 ─────────────────────────────────────────

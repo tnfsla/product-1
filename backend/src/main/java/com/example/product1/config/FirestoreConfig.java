@@ -13,14 +13,13 @@ public class FirestoreConfig {
 
     @Bean
     public Firestore firestore() throws IOException {
-        // Authenticate using Application Default Credentials
-        // This will automatically pick up credentials from the environment
-        // For example, if running on Google Cloud Platform, or if GOOGLE_APPLICATION_CREDENTIALS
-        // environment variable is set to a service account key file path.
-        GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
-        FirestoreOptions firestoreOptions = FirestoreOptions.newBuilder()
-                .setCredentials(credentials)
-                .build();
-        return firestoreOptions.getService();
+        String emulatorHost = System.getenv("FIRESTORE_EMULATOR_HOST");
+        FirestoreOptions.Builder builder = FirestoreOptions.newBuilder()
+                .setProjectId("firebase-485608")
+                .setDatabaseId("productdb");
+        if (emulatorHost == null || emulatorHost.isEmpty()) {
+            builder.setCredentials(GoogleCredentials.getApplicationDefault());
+        }
+        return builder.build().getService();
     }
 }

@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "site": "fir-485608",
+    "public": "frontend",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}

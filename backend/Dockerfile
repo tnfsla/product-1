@@ -7,16 +7,18 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y maven wget
 COPY pom.xml .
 COPY src ./src
-# Clear specific dependency cache before resolving
-RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve --update-snapshots
-RUN --mount=type=cache,target=/root/.m2 mvn package -Dmaven.test.skip=true --update-snapshots
+RUN mvn dependency:resolve --update-snapshots
+RUN mvn package -Dmaven.test.skip=true --update-snapshots
 
 # Stage 2: Create the final image
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
+RUN apt-get update && \
+    apt-get install -y tesseract-ocr tesseract-ocr-kor tesseract-ocr-eng && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 # Get the JAR file from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 # Expose the port your Spring Boot app runs on (default is 8080)
 EXPOSE 8080
 # Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx400m", "-jar", "app.jar"]

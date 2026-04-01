@@ -24,8 +24,7 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public User saveUser(User user) throws ExecutionException, InterruptedException {
-        // TEMPORARY: Do NOT hash the password for testing plain text
-        // user.setPassword(passwordEncoder.encode(user.getPassword())); // Commented out
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         ApiFuture<WriteResult> collectionsApiFuture = firestore.collection(COLLECTION_NAME).document(user.getUsername()).set(user);
         collectionsApiFuture.get(); // Wait for the operation to complete
         return user;
@@ -43,7 +42,7 @@ public class UserService {
 
     public boolean verifyPassword(String rawPassword, String encodedPassword) {
         // TEMPORARY: Always return true to bypass password verification for testing
-        return true;
-        // return passwordEncoder.matches(rawPassword, encodedPassword); // Commented out
+        //return true;
+        return passwordEncoder.matches(rawPassword, encodedPassword); // Commented out
     }
 }

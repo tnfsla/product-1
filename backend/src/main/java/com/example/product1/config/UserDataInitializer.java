@@ -17,16 +17,20 @@ public class UserDataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         String adminUsername = "admin";
-        String adminPassword = "1234"; // Raw password for initialization
+        String adminPassword = "1234";
 
         User adminUser = userService.getUserByUsername(adminUsername);
         if (adminUser == null) {
-            System.out.println("Creating default admin user...");
-            User newAdmin = new User(adminUsername, adminPassword); // Password will now be saved as plain text
-            userService.saveUser(newAdmin);
-            System.out.println("Default admin user created: " + adminUsername);
+            System.out.println("Admin user not found. Creating with hashed password...");
+            userService.saveUser(new User(adminUsername, adminPassword));
+            System.out.println("Admin user created.");
+        } else if (!adminUser.getPassword().startsWith("$2")) {
+            // 평문 비밀번호 감지 → 해싱 후 DB 업데이트
+            System.out.println("Admin password is plain text. Re-hashing and updating DB...");
+            userService.saveUser(new User(adminUsername, adminPassword));
+            System.out.println("Admin password updated to hashed.");
         } else {
-            System.out.println("Admin user already exists: " + adminUsername);
+            System.out.println("Admin user already exists with hashed password.");
         }
     }
 }

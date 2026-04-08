@@ -266,10 +266,9 @@ public class OcrService {
         // 5) 검도자 — 전/후 줄 분리 케이스까지 대응하는 전체 버전
         result.setReviewer(extractReviewerName(t));
 
-        // 6) 품명 — 3단계 폴백
+        // 6) 품명 — 3단계 폴백 (도명은 별도 필드로 분리됐으므로 품명 폴백에서 제외)
         String partDesc = extractPartDesc(t);
         if (partDesc == null) partDesc = extractLabelValue(t, "품명");
-        if (partDesc == null) partDesc = extractLabelValue(t, "도명");
         if (partDesc == null) partDesc = fallbackPartDescAfterLabel(t, result.getApprover(), result.getReviewer());
         if (partDesc == null) partDesc = fallbackPartDescAroundKeyword(t);
         if (partDesc == null) partDesc = pickLikelyPartDescLine(t);
@@ -892,10 +891,10 @@ public class OcrService {
         if (result.getCompany()     != null) score += 15;
         if (result.getApprover()    != null) score += 15;
         if (result.getReviewer()    != null) score += 10;
-        if (result.getPartDesc()    != null) score += 15;
-        if (result.getDrawingName() != null) score += 5;
+        if (result.getPartDesc()    != null) score += 20;
+        if (result.getDrawingName() != null) score += 5;  // 총합 105 가능, Math.min(100, score)로 캡
         if (result.getApprover() != null && !result.getApprover().matches("[가-힣]{2,4}")) score -= 5;
         if (result.getReviewer() != null && !result.getReviewer().matches("[가-힣]{2,4}")) score -= 5;
-        return Math.max(0, score);
+        return Math.max(0, Math.min(100, score));
     }
 }

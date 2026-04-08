@@ -9,6 +9,7 @@ import com.google.cloud.firestore.annotation.DocumentId;
 
       // 기존
       private String dwgNo;
+      private String drawingName;
       private String partDesc;
       private String reviewer;
 
@@ -37,8 +38,10 @@ import com.google.cloud.firestore.annotation.DocumentId;
       public void setOcrText(String v)   { this.ocrText = v; }
       public int getConfidence()   { return confidence; }
       public void setConfidence(int v)   { this.confidence = v; }
-      public String getDwgNo()     { return dwgNo; }
-      public void setDwgNo(String v)     { this.dwgNo = v; }
+      public String getDwgNo()        { return dwgNo; }
+      public void setDwgNo(String v)        { this.dwgNo = v; }
+      public String getDrawingName()  { return drawingName; }
+      public void setDrawingName(String v)  { this.drawingName = v; }
       public String getPartDesc()  { return partDesc; }
       public void setPartDesc(String v)  { this.partDesc = v; }
       public String getReviewer()  { return reviewer; }

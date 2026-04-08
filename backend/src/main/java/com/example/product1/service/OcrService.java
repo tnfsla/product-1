@@ -55,9 +55,9 @@ public class OcrService {
 
         int conf = estimateConfidence(result);
 
-        // 3) AUTO 재시도: 품명·검도자 미추출 또는 confidence < 60
+        // 3) AUTO 재시도: 품명 미추출/가비지·검도자 미추출 또는 confidence < 60
         boolean needRetry = usedOcr
-                && (result.getPartDesc() == null || result.getReviewer() == null || conf < 60);
+                && (isUnusablePartDesc(result.getPartDesc()) || result.getReviewer() == null || conf < 60);
         if (needRetry) {
             String slowText = runTesseract(pdfFile, 2, 200);
             String merged   = mergeOcrTexts(ocrText, slowText);
@@ -248,7 +248,12 @@ public class OcrService {
             result.setCompany(co);
         }
 
-        // 3) 이름 필드
+        // 3) 도명(도면 명칭)
+        String drawingName = extractValueAfterLabel(t, "도명",
+                new String[]{"도번", "승인", "검도", "회사", "작성", "설계", "제도", "품명", "수량", "부품번호", "부품번", "재질"});
+        result.setDrawingName(drawingName);
+
+        // 4) 이름 필드
         result.setWriter(extractNameAfterKeyword(t, "작성"));
         result.setDesigner(extractNameAfterKeyword(t, "설계"));
         result.setDrafter(extractNameAfterKeyword(t, "제도"));
@@ -258,10 +263,10 @@ public class OcrService {
             result.setApprover(guessPersonName(t, result.getReviewer()));
         }
 
-        // 4) 검도자 — 전/후 줄 분리 케이스까지 대응하는 전체 버전
+        // 5) 검도자 — 전/후 줄 분리 케이스까지 대응하는 전체 버전
         result.setReviewer(extractReviewerName(t));
 
-        // 5) 품명 — 3단계 폴백
+        // 6) 품명 — 3단계 폴백
         String partDesc = extractPartDesc(t);
         if (partDesc == null) partDesc = extractLabelValue(t, "품명");
         if (partDesc == null) partDesc = extractLabelValue(t, "도명");
@@ -270,7 +275,7 @@ public class OcrService {
         if (partDesc == null) partDesc = pickLikelyPartDescLine(t);
         result.setPartDesc(cleanPartDesc(partDesc));
 
-        // 6) 알려진 패턴 정규화 및 특정 도면 하드코딩 보정
+        // 7) 알려진 패턴 정규화 및 특정 도면 하드코딩 보정
         String normalized = normalizeKnownPartDesc(result.getPartDesc(), t, result.getDwgNo());
         if (normalized != null) result.setPartDesc(normalized);
         applyKnownPartDescOverrides(pdfName, result);
@@ -831,9 +836,25 @@ public class OcrService {
         return hangul == 0 && letters == 0;
     }
 
+    /** OCR이 표 전체를 한 줄로 뭉갠 가비지인지 판별 */
+    private boolean isLikelyMergedTableGarbage(String desc) {
+        if (desc == null || desc.isEmpty()) return false;
+        String s = desc.replaceAll("\\s+", "");
+        if (s.length() >= 90) return true;
+        int hits = 0;
+        String[] kws = {"품명","수량","부품번호","도번","도명","승인","검도","재질","부품번","작성","설계"};
+        for (String k : kws) { if (s.contains(k)) hits++; }
+        if (hits >= 3) return true;
+        if (s.length() > 45 && hits >= 2) return true;
+        boolean hasComma = s.indexOf(',') >= 0 || s.indexOf('\uFF0C') >= 0;
+        if (s.length() > 55 && !hasComma && countDigits(s) >= 12) return true;
+        return false;
+    }
+
     private boolean isUnusablePartDesc(String desc) {
         if (desc == null || desc.trim().isEmpty()) return true;
         if (isMostlyDigitsOrNoise(desc)) return true;
+        if (isLikelyMergedTableGarbage(desc)) return true;
         if (desc.contains("=") || desc.contains("+") || desc.contains(".")) return true;
         if (desc.contains("도면번호") || desc.contains("수기")) return true;
         if (desc.contains("사업청") || desc.contains("사업팀")) return true;
@@ -867,11 +888,12 @@ public class OcrService {
 
     private int estimateConfidence(DrawingResult result) {
         int score = 0;
-        if (result.getDwgNo()    != null) score += 40;
-        if (result.getCompany()  != null) score += 15;
-        if (result.getApprover() != null) score += 15;
-        if (result.getReviewer() != null) score += 10;
-        if (result.getPartDesc() != null) score += 20;
+        if (result.getDwgNo()       != null) score += 40;
+        if (result.getCompany()     != null) score += 15;
+        if (result.getApprover()    != null) score += 15;
+        if (result.getReviewer()    != null) score += 10;
+        if (result.getPartDesc()    != null) score += 15;
+        if (result.getDrawingName() != null) score += 5;
         if (result.getApprover() != null && !result.getApprover().matches("[가-힣]{2,4}")) score -= 5;
         if (result.getReviewer() != null && !result.getReviewer().matches("[가-힣]{2,4}")) score -= 5;
         return Math.max(0, score);

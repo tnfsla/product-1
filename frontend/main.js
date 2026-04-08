@@ -204,7 +204,7 @@ const API_BASE = _isFirebaseHosting
   });
 
   function renderResult() {
-    const cols = ['파일명', '도면번호', '품명', '회사명', '작성', '설계', '제도', '승인', '검도', '신뢰도', 'OCR 원문'];
+    const cols = ['파일명', '도면번호', '도명', '품명', '회사명', '작성', '설계', '제도', '승인', '검도', '신뢰도', 'OCR 원문'];
     const now = new Date().toLocaleString('ko-KR');
     const fileNames = files.map(f => f.name).join(', ');
 
@@ -224,6 +224,7 @@ const API_BASE = _isFirebaseHosting
       tr.innerHTML = `
         <td>${row.pdfName || ''}</td>
         <td>${row.dwgNo || '-'}</td>
+        <td>${row.drawingName || '-'}</td>
         <td>${row.partDesc || '-'}</td>
         <td>${row.company || '-'}</td>
         <td>${row.writer || '-'}</td>
@@ -272,8 +273,8 @@ const API_BASE = _isFirebaseHosting
   document.addEventListener('click', async (e) => {
     if (e.target.closest('.btn-export')) {
       if (parsedResults.length === 0) return;
-      const cols = ['pdfName','dwgNo','partDesc','company','writer','designer','drafter','approver','reviewer','confidence'];
-      const headers = ['파일명','도면번호','품명','회사명','작성','설계','제도','승인','검도','신뢰도'];
+      const cols = ['pdfName','dwgNo','drawingName','partDesc','company','writer','designer','drafter','approver','reviewer','confidence'];
+      const headers = ['파일명','도면번호','도명','품명','회사명','작성','설계','제도','승인','검도','신뢰도'];
       const csv = [
         headers.join(','),
         ...parsedResults.map(r => cols.map(c => `"${r[c] || ''}"`).join(','))

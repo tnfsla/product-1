@@ -241,11 +241,14 @@ public class OcrService {
         while (mAll.find()) dwgCandidates.add(mAll.group());
         result.setDwgNo(chooseDrawingNo(expectedFromName, dwgCandidates));
 
-        // 2) 회사명
+        // 2) 회사명 — "(주)" OCR 오독 대비 폴백 포함
         Matcher mCo = Pattern.compile("(한화\\s*테크윈\\s*\\(\\s*[주수]\\s*\\))").matcher(t);
         if (mCo.find()) {
             String co = mCo.group(1).replaceAll("\\s+", "").replace("(수)", "(주)");
             result.setCompany(co);
+        } else if (t.replaceAll("\\s+", "").contains("한화테크윈")) {
+            // "(주)" 부분이 OCR에서 "IC +)" 등으로 오독되는 경우 폴백
+            result.setCompany("한화테크윈(주)");
         }
 
         // 3) 도명(도면 명칭)
@@ -310,7 +313,8 @@ public class OcrService {
         if ("작성".equals(keyword) || "설계".equals(keyword) || "제도".equals(keyword)) tailMax = 70;
         if ("승인".equals(keyword)) tailMax = 40;
         if (tail.length() > tailMax) tail = tail.substring(0, tailMax);
-        tail = tail.replaceAll("(?<=[가-힣])\\s+(?=[가-힣])", "");
+        // 개행은 유지하고 공백/탭만 제거 — \\s+ 쓰면 개행 넘어 다음 라인 내용이 이름에 붙음
+        tail = tail.replaceAll("(?<=[가-힣])[ \\t]+(?=[가-힣])", "");
 
         if ("승인".equals(keyword)) {
             Matcher mKim = Pattern.compile("김\\s*([가-힣])\\s*([가-힣])").matcher(tail);
@@ -418,9 +422,11 @@ public class OcrService {
         while (m.find()) {
             String tok = m.group(1);
             if (tok.equals(exclude)) continue;
-            if (tok.contains("검도") || tok.contains("승인")) continue;
+            if (tok.contains("검도") || tok.contains("승인") || tok.contains("규")) continue;
             if (tok.startsWith("한화") || tok.startsWith("테크") || tok.startsWith("포병") || tok.startsWith("방위")) continue;
+            if (tok.startsWith("퍼스") || tok.startsWith("삼성") || tok.startsWith("현대")) continue; // 협력사명 오탐 방지
             if (tok.contains("도면") || tok.contains("품명") || tok.contains("수량")) continue;
+            if (tok.endsWith("용") || tok.endsWith("형") || tok.endsWith("식")) continue; // 부품명 오탐 방지 (보호용, 특수형 등)
             if (tok.length() != 3) continue;
             freq.put(tok, freq.getOrDefault(tok, 0) + 1);
         }
